@@ -20,7 +20,7 @@
             </span>
             {/if}
             <span class="institutions">
-                <label>{str tag='protocol' section='webservice'}:</label>
+                <label>{str tag='protocol' section='auth.webservice'}:</label>
                     <select name="protocol" id="protocol">
                         <option value="all"{if !$.request.protocol} selected="selected"{/if}>{str tag=All}</option>
                         {foreach from=$protocols item=i}
@@ -29,7 +29,7 @@
                     </select>
             </span>            
             <span class="institutions">
-                <label>{str tag='sauthtype' section='webservice'}:</label>
+                <label>{str tag='sauthtype' section='auth.webservice'}:</label>
                     <select name="authtype" id="authtype">
                         <option value="all"{if !$.request.authtype} selected="selected"{/if}>{str tag=All}</option>
                         {foreach from=$authtypes item=i}
@@ -37,11 +37,11 @@
                         {/foreach}
                     </select>
             </span>        
-            <label>{str tag='function' section='webservice'}:</label>
+            <label>{str tag='function' section='auth.webservice'}:</label>
             <input type="text" name="functionquery" id="query"{if $search->functionquery} value="{$search->functionquery}"{/if}>
             <button id="query-button" class="btn-search" type="submit">{str tag="go"}</button>
             <br/>
-            <label>{str tag='errors' section='webservice'}:</label>
+            <label>{str tag='errors' section='auth.webservice'}:</label>
             <input type="checkbox" name="onlyerrors" id="query"{if $search->onlyerrors} CHECKED{/if}>
         </div>
         <div id="results" class="section">
