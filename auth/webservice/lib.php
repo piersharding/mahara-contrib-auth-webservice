@@ -232,18 +232,22 @@ class PluginAuthWebservice extends PluginAuth {
         if ($prevversion == 0) {
         // force the upgrade to get the intial services loaded
             external_reload_webservices();
-            // can't do the following as it requires a lot postinst for dependencies on data in core
-            //             // ensure that we have a webservice auth_instance
-            //             $authinstance = get_record('auth_instance', 'institution', 'mahara', 'authname', 'webservice');
-            //             if (empty($authinstance)) {
-            //                 $authinstance = (object)array(
-            //                             'instancename' => 'webservice',
-            //                             'priority'     => 2,
-            //                             'institution'  => 'mahara',
-            //                             'authname'     => 'webservice',
-            //                 );
-            //                 insert_record('auth_instance', $authinstance);
-            //             }
+            // Install a cron job to clean webservices logs
+            if (!get_record('cron', 'callfunction', 'webservice_clean_webservice_logs')) {
+                $cron = new StdClass;
+                $cron->callfunction = 'webservice_clean_webservice_logs';
+                $cron->minute       = '5';
+                $cron->hour         = '01';
+                $cron->day          = '*';
+                $cron->month        = '*';
+                $cron->dayofweek    = '*';
+                insert_record('cron', $cron);
+            }
+
+            // activate webservices
+            foreach (array('soap', 'xmlrpc', 'rest', 'oauth') as $proto) {
+                set_config('webservice_'.$proto.'_enabled', 1);
+            }
         }
     }
 }

@@ -68,6 +68,17 @@ function activate_webservices_submit(Pieform $form, $values) {
 
     // reload/upgrade the web services configuration
     if ($enabled) {
+        // ensure that we have a webservice auth_instance
+        $authinstance = get_record('auth_instance', 'institution', 'mahara', 'authname', 'webservice');
+        if (empty($authinstance)) {
+            $authinstance = (object)array(
+                   'instancename' => 'webservice',
+                    'priority'     => 2,
+                    'institution'  => 'mahara',
+                    'authname'     => 'webservice',
+            );
+            insert_record('auth_instance', $authinstance);
+        }
         external_reload_webservices();
     }
     redirect('/webservice/admin/index.php?plugintype=auth&pluginname=webservice&type=webservice');
