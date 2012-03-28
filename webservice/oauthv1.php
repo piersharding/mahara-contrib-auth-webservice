@@ -75,6 +75,12 @@ if (!webservice_protocol_is_enabled('oauth')) {
     die;
 }
 
+// you must use HTTPS as token based auth is a hazzard without it
+if (!is_https()) {
+    header("HTTP/1.0 403 Forbidden - HTTPS must be used");
+    die;
+}
+
 /*
  * Always announce XRDS OAuth discovery
  */

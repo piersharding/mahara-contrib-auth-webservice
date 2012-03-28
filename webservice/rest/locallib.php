@@ -450,7 +450,7 @@ function webservice_download_file_content($url, $headers=null, $postdata=null, $
     }
     $options[CURLOPT_TIMEOUT] = $timeout;
     $options[CURLOPT_URL] = $url;
-    $result = mahara_http_request($options);
+    $result = webservice_http_request($options);
 
     // reformat the results
     $errno  = $result->errno;
@@ -514,6 +514,68 @@ function webservice_download_file_content($url, $headers=null, $postdata=null, $
         }
     }
 }
+
+/**
+ * Copied directly from lib/web.php because I need t deactivate the SSL cert Peer
+ * checking for testing - people should be able to use self-signed certs
+ */
+function webservice_http_request($config, $quiet=false) {
+    $ch = curl_init();
+
+    // standard curl_setopt stuff; configs passed to the function can override these
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    if (!ini_get('open_basedir')) {
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+    }
+
+    curl_setopt_array($ch, $config);
+
+    if($proxy_address = get_config('proxyaddress')) {
+        curl_setopt($ch, CURLOPT_PROXY, $proxy_address);
+
+        if($proxy_authmodel = get_config('proxyauthmodel') && $proxy_credentials = get_config('proxyauthcredentials')) {
+            // todo: actually do something with $proxy_authmodel
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_credentials);
+        }
+    }
+
+    if (strpos($config[CURLOPT_URL], 'https://') === 0) {
+        if ($cainfo = get_config('cacertinfo')) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_CAINFO, $cainfo);
+        }
+    }
+    // ensure that certificates are not checked for tests
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $result = new StdClass();
+    $result->data = curl_exec($ch);
+    $result->info = curl_getinfo($ch);
+    $result->error = curl_error($ch);
+    $result->errno = curl_errno($ch);
+
+    if ($result->errno) {
+        if ($quiet) {
+            // When doing something unimportant like fetching rss feeds, some errors should not pollute the logs.
+            $dontcare = array(
+                    CURLE_COULDNT_RESOLVE_HOST, CURLE_COULDNT_CONNECT, CURLE_PARTIAL_FILE, CURLE_OPERATION_TIMEOUTED,
+                    CURLE_GOT_NOTHING,
+            );
+            $quiet = in_array($result->errno, $dontcare);
+        }
+        if (!$quiet) {
+            log_warn('Curl error: ' . $result->errno . ': ' . $result->error);
+        }
+    }
+
+    curl_close($ch);
+
+    return $result;
+}
+
+
 
 /**
  * check if $url matches anything in proxybypass list
