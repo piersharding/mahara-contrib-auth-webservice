@@ -1,6 +1,6 @@
 {include file='header.tpl'}
 
-<h2>{str tag="function" section="webservice"}: {$function->name} </h2>
+<h2>{str tag="function" section="auth.webservice"}: {$function->name} </h2>
 <table>
 <tr><td>{str tag="description" section="auth.webservice"}:</td><td>{$functiondescription}</td></tr>
 <tr><td>{str tag="component" section="auth.webservice"}:</td><td>{$function->component}</td></tr>
@@ -8,7 +8,7 @@
 <tr><td>{str tag="method" section="auth.webservice"}:</td><td>{$function->methodname}</td></tr>
 </table>
 <br/>
-<span class='arguments'>{str tag="arguments" section="webservice"}</span>
+<span class='arguments'>{str tag="arguments" section="auth.webservice"}</span>
 <br/>
 
   {foreach from=$fdesc->parameters_desc->keys item=paramdesc key=paramname}
@@ -50,7 +50,7 @@
 
 <br/>
 <br/>
-<span class='response'>{str tag="response" section="webservice"}</span>
+<span class='response'>{str tag="response" section="auth.webservice"}</span>
 <br/>
 <span style='font-size: 80%'>
 {if $fdesc->returns_desc->desc}
@@ -90,7 +90,7 @@
 <br/>
 {if $restactive == 1 }
    <br/>
-   <span class='response'>{str tag="errorcodes" section="webservice"}</span>
+   <span class='response'>{str tag="errorcodes" section="auth.webservice"}</span>
    <br/>
    <span style='font-size: 80%'>
    <div>

@@ -51,12 +51,15 @@ function build_webservice_user_search_results($search, $offset, $limit, $sortby,
 
     $searchurl = get_config('wwwroot') . 'webservice/admin/search.php?' . join('&', $params) . '&limit=' . $limit;
 
-    $results['pagination'] = build_pagination(array(
+    $pagination = $results['pagination'] = build_pagination(array(
             'id' => 'admin_usersearch_pagination',
             'class' => 'center',
             'url' => $searchurl,
             'count' => $results['count'],
             'limit' => $limit,
+            'setlimit' => true,
+            'jumplinks' => 8,
+            'numbersincludeprevnext' => 2,
             'offset' => $offset,
             'datatable' => 'searchresults',
             'jsonscript' => 'webservice/admin/search.json.php',
@@ -91,11 +94,11 @@ function build_webservice_user_search_results($search, $offset, $limit, $sortby,
         'icon'        => array('name'     => '',
                                'template' => get_config('docroot') . 'auth/webservice/theme/raw/searchiconcolumn.tpl',
                                'class'    => 'center'),
-        'firstname'   => array('name'     => get_string('firstname')),
-        'lastname'    => array('name'     => get_string('lastname')),
-        'username'    => array('name'     => get_string('username'),
+        'firstname'   => array('name'     => get_string('firstname'), 'sort' => true),
+        'lastname'    => array('name'     => get_string('lastname'), 'sort' => true),
+        'username'    => array('name'     => get_string('username'), 'sort' => true,
                                'template' => 'admin/users/searchusernamecolumn.tpl'),
-        'email'       => array('name'     => get_string('email')),
+        'email'       => array('name'     => get_string('email'), 'sort' => true),
     );
 
     $institutions = get_records_assoc('institution', '', '', '', 'name,displayname');
@@ -105,7 +108,6 @@ function build_webservice_user_search_results($search, $offset, $limit, $sortby,
     }
 
     $smarty = smarty_core();
-    $smarty->addResource('auth', 'Dwoo_Template_Mahara_auth', array($smarty, 'compilerFactory'));
     $smarty->assign_by_ref('results', $results);
     $smarty->assign_by_ref('institutions', $institutions);
     $smarty->assign('USER', $USER);
@@ -122,8 +124,11 @@ function build_webservice_user_search_results($search, $offset, $limit, $sortby,
     $smarty->assign('ncols', count($cols));
     global $THEME;
     $THEME->templatedirs[]= get_config('docroot') . 'auth/webservice/theme/raw/';
-    //     return $smarty->fetch('auth:webservice:searchresulttable.tpl');
-    return $smarty->fetch('searchresulttable.tpl');
+    return array($smarty->fetch('searchresulttable.tpl'), $cols, array(
+        'url' => $searchurl . '&ouid=' . $ouid . '&suid=' . $suid  . '&token=' . $token . '&sortby=' . $sortby . '&sortdir=' . $sortdir,
+        'sortby' => $search->sortby,
+        'sortdir' => $search->sortdir
+    ), $pagination);
 }
 
 function build_webservice_log_search_results($search, $offset, $limit, $sortby, $sortdir) {
@@ -140,26 +145,31 @@ function build_webservice_log_search_results($search, $offset, $limit, $sortby, 
 
     $searchurl = get_config('wwwroot') . 'webservice/admin/webservicelogs.php?' . join('&', $params) . '&limit=' . $limit;
 
-    $results['pagination'] = build_pagination(array(
+    $pagination = $results['pagination'] = build_pagination(array(
             'id' => 'admin_usersearch_pagination',
             'class' => 'center',
             'url' => $searchurl,
             'count' => $results['count'],
             'limit' => $limit,
+            'setlimit' => true,
+            'jumplinks' => 8,
+            'numbersincludeprevnext' => 2,
             'offset' => $offset,
             'datatable' => 'searchresults',
             'jsonscript' => 'webservice/admin/logsearch.json.php',
     ));
+
     $cols = array(
             'username'        => array('name'     => get_string('userauth', 'auth.webservice'),
                                'template'         => get_config('docroot') . 'auth/webservice/theme/raw/username.tpl',
-                               'class'            => 'center'),
-            'institution'   => array('name'     => get_string('institution'),),
-            'protocol'      => array('name'     => get_string('protocol', 'auth.webservice')),
-            'auth'          => array('name'     => get_string('authtype', 'auth.webservice')),
-            'functionname'  => array('name'     => get_string('function', 'auth.webservice')),
-            'timetaken'     => array('name'     => get_string('timetaken', 'auth.webservice')),
-            'timelogged'    => array('name'     => get_string('timelogged', 'auth.webservice')),
+                               'class'            => 'center',
+                               'sort'             => true),
+            'institution'   => array('name'     => get_string('institution'), 'sort' => true),
+            'protocol'      => array('name'     => get_string('protocol', 'auth.webservice'), 'sort' => true),
+            'auth'          => array('name'     => get_string('authtype', 'auth.webservice'), 'sort' => true),
+            'functionname'  => array('name'     => get_string('function', 'auth.webservice'), 'sort' => true),
+            'timetaken'     => array('name'     => get_string('timetaken', 'auth.webservice'), 'sort' => true),
+            'timelogged'    => array('name'     => get_string('timelogged', 'auth.webservice'), 'sort' => true),
             'info'          => array('name'     => get_string('info', 'auth.webservice'), 'class' => 'webservicelogs-info'),
     );
 
@@ -182,8 +192,11 @@ function build_webservice_log_search_results($search, $offset, $limit, $sortby, 
     $smarty->assign('ncols', count($cols));
     global $THEME;
     $THEME->templatedirs[]= get_config('docroot') . 'auth/webservice/theme/raw/';
-//     return $smarty->fetch('auth:webservice:searchresulttable.tpl');
-    return $smarty->fetch('searchresulttable.tpl');
+    return array($smarty->fetch('searchresulttable.tpl'), $cols, array(
+        'url' => $searchurl . '&sortby=' . $sortby . '&sortdir=' . $sortdir,
+        'sortby' => $search->sortby,
+        'sortdir' => $search->sortdir
+    ), $pagination);
 }
 
 /**

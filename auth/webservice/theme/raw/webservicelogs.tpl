@@ -27,7 +27,7 @@
                         <option value="{$i}"{if $i == $.request.protocol}" selected="selected"{/if}>{$i}</option>
                         {/foreach}
                     </select>
-            </span>            
+            </span>
             <span class="institutions">
                 <label>{str tag='sauthtype' section='auth.webservice'}:</label>
                     <select name="authtype" id="authtype">
@@ -36,7 +36,7 @@
                         <option value="{$i}"{if $i == $.request.authtype}" selected="selected"{/if}>{$i}</option>
                         {/foreach}
                     </select>
-            </span>        
+            </span>
             <label>{str tag='function' section='auth.webservice'}:</label>
             <input type="text" name="functionquery" id="query"{if $search->functionquery} value="{$search->functionquery}"{/if}>
             <button id="query-button" class="btn-search" type="submit">{str tag="go"}</button>
@@ -45,7 +45,38 @@
             <input type="checkbox" name="onlyerrors" id="query"{if $search->onlyerrors} CHECKED{/if}>
         </div>
         <div id="results" class="section">
-            {$results|safe}
+        <h2 id="resultsheading">{str tag="Results"}</h2>
+        {if $results}
+        <table id="searchresults" class="tablerenderer fullwidth listing">
+            <thead>
+                <tr>
+                    {foreach from=$columns key=f item=c}
+                    <th class="{if $c.sort}search-results-sort-column{if $f == $sortby} {$sortdir}{/if}{/if}{if $c.class} {$c.class}{/if}">
+                        {if $c.sort}
+                            <a href="{$searchurl}&sortby={$f}&sortdir={if $f == $sortby && $sortdir == 'asc'}desc{else}asc{/if}">
+                                {$c.name}
+                                <span class="accessible-hidden">({str tag=sortby} {if $f == $sortby && $sortdir == 'asc'}{str tag=descending}{else}{str tag=ascending}{/if})</span>
+                            </a>
+                        {else}
+                            {$c.name}
+                        {/if}
+                        {if $c.help}
+                            {$c.helplink|safe}
+                        {/if}
+                        {if $c.headhtml}<div style="font-weight: normal;">{$c.headhtml|safe}</div>{/if}
+                    </th>
+                    {/foreach}
+                </tr>
+            </thead>
+            <tbody>
+                {$results|safe}
+            </tbody>
+        </table>
+        {$pagination|safe}
+        {else}
+            <div>{str tag="noresultsfound"}</div>
+        {/if}
+    </div>
         </div>
     </form>
 

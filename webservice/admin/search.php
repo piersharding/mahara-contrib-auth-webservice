@@ -63,13 +63,16 @@ $offset  = param_integer('offset', 0);
 $limit   = param_integer('limit', 10);
 
 $search = (object) array(
-    'query'       => trim(param_variable('query', '')),
-    'f'           => param_alpha('f', null),
-    'l'           => param_alpha('l', null),
-    'sortby'      => $sortby,
-    'sortdir'     => $sortdir,
-    'offset'      => $offset,
-    'limit'       => $limit,
+    'query'          => trim(param_variable('query', '')),
+    'f'              => param_alpha('f', null),
+    'l'              => param_alpha('l', null),
+    'sortby'         => $sortby,
+    'sortdir'        => $sortdir,
+    'loggedin'       => 'any',
+    'loggedindate'   => strftime(get_string('strftimedatetimeshort')),
+    'duplicateemail' => false,
+    'offset'         => $offset,
+    'limit'          => $limit,
 );
 
 if ($USER->get('admin')) {
@@ -89,7 +92,14 @@ $smarty->assign('search', $search);
 $smarty->assign('alphabet', explode(',', get_string('alphabet')));
 $smarty->assign('cancel', get_string('cancel'));
 $smarty->assign('institutions', $institutions);
-$smarty->assign('results', build_webservice_user_search_results($search, $offset, $limit, $sortby, $sortdir));
+list($html, $columns, $searchurl, $pagination) = build_webservice_user_search_results($search, $offset, $limit, $sortby, $sortdir);
+$smarty->assign('results', $html);
+$smarty->assign('pagination', $pagination['html']);
+$smarty->assign('columns', $columns);
+$smarty->assign('searchurl', $searchurl['url']);
+$smarty->assign('sortby', $searchurl['sortby']);
+$smarty->assign('sortdir', $searchurl['sortdir']);
+
 if ($token) {
     $heading = get_string('headingusersearchtoken', 'auth.webservice');
 }
