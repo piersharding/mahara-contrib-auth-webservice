@@ -145,7 +145,7 @@ function wsdoc_detailed_description_html($params) {
  * @param $paramdescription
  */
 function wsdoc_xmlrpc($paramname, $paramdescription) {
-    return htmlentities('[' . $paramname . '] =>' . wsdoc_xmlrpc_param_description_html($paramdescription));
+    return htmlspecialchars('[' . $paramname . '] =>' . wsdoc_xmlrpc_param_description_html($paramdescription));
 }
 
 
@@ -207,7 +207,7 @@ EOF;
  * @param $paramdescription
  */
 function wsdoc_rest($paramname, $paramdescription) {
-    return htmlentities(wsdoc_rest_param_description_html($paramdescription, $paramname));
+    return htmlspecialchars(wsdoc_rest_param_description_html($paramdescription, $paramname));
 }
 
 /**
@@ -226,7 +226,7 @@ EOF;
     $restresponse .= wsdoc_description_in_indented_xml_format(
                     $paramdescription);
     $restresponse .="</RESPONSE>" . $brakeline;
-    return htmlentities($restresponse);
+    return htmlspecialchars($restresponse);
 }
 
 /**
@@ -245,7 +245,7 @@ function wsdoc_rest_exception() {
 </EXCEPTION>
 EOF;
 
-    return htmlentities($restexceptiontext);
+    return htmlspecialchars($restexceptiontext);
 }
 
 /**

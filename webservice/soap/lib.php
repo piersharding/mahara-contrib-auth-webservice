@@ -46,6 +46,7 @@ class webservice_soap_client extends Zend_Soap_Client {
         $values []= 'wsdl=1';
         $this->auth = implode('&', $values);
         $this->wsdl = $this->serverurl . "?" . $this->auth;
+        error_log("WSDL is: " . $this->wsdl);
         parent::__construct($this->wsdl, $options);
     }
 

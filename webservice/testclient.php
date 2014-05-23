@@ -366,6 +366,8 @@ function testclient_submit(Pieform $form, $values) {
 
             case 'soap':
                 error_log('creating SOAP client');
+                // stop failed to load external entity error
+                libxml_disable_entity_loader(false);
                 require_once(get_config('docroot') . 'webservice/soap/lib.php');
                 //force SOAP synchronous mode
                 $client = new webservice_soap_client(get_config('wwwroot') . 'webservice/soap/server.php',

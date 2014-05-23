@@ -565,3 +565,130 @@ function clean_param($param, $type) {
            throw new MaharaException("unknownparamtype: ".$type);
     }
 }
+
+
+/**
+ * Singleton to handle the external settings.
+ *
+ * We use singleton to encapsulate the "logic"
+ *
+ * @package    core_webservice
+ * @copyright  2012 Jerome Mouneyrac
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since Moodle 2.3
+ */
+class external_settings {
+
+    /** @var object the singleton instance */
+    public static $instance = null;
+
+    /** @var boolean Should the external function return raw text or formatted */
+    private $raw = false;
+
+    /** @var boolean Should the external function filter the text */
+    private $filter = false;
+
+    /** @var boolean Should the external function rewrite plugin file url */
+    private $fileurl = true;
+
+    /** @var string In which file should the urls be rewritten */
+    private $file = 'webservice/pluginfile.php';
+
+    /**
+     * Constructor - protected - can not be instanciated
+     */
+    protected function __construct() {
+    }
+
+    /**
+     * Clone - private - can not be cloned
+     */
+    private final function __clone() {
+    }
+
+    /**
+     * Return only one instance
+     *
+     * @return object
+     */
+    public static function get_instance() {
+        if (self::$instance === null) {
+            self::$instance = new external_settings;
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Set raw
+     *
+     * @param boolean $raw
+     */
+    public function set_raw($raw) {
+        $this->raw = $raw;
+    }
+
+    /**
+     * Get raw
+     *
+     * @return boolean
+     */
+    public function get_raw() {
+        return $this->raw;
+    }
+
+    /**
+     * Set filter
+     *
+     * @param boolean $filter
+     */
+    public function set_filter($filter) {
+        $this->filter = $filter;
+    }
+
+    /**
+     * Get filter
+     *
+     * @return boolean
+     */
+    public function get_filter() {
+        return $this->filter;
+    }
+
+    /**
+     * Set fileurl
+     *
+     * @param boolean $fileurl
+     */
+    public function set_fileurl($fileurl) {
+        $this->fileurl = $fileurl;
+    }
+
+    /**
+     * Get fileurl
+     *
+     * @return boolean
+     */
+    public function get_fileurl() {
+        return $this->fileurl;
+    }
+
+    /**
+     * Set file
+     *
+     * @param string $file
+     */
+    public function set_file($file) {
+        $this->file = $file;
+    }
+
+    /**
+     * Get file
+     *
+     * @return string
+     */
+    public function get_file() {
+        return $this->file;
+    }
+}
+

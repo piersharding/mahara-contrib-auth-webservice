@@ -25,7 +25,7 @@
 </pre>
    </div>
    </div>
-{if $xmlrpcactive == 1 }   
+{if $xmlrpcactive == 1 }
    <br/>
    <div>
    <div class="xmlrpcdescription">
@@ -33,9 +33,9 @@
 {wsdoc_xmlrpc($paramname, $paramdesc)}
 </pre>
    </div>
-   </div>   
-{/if}   
-{if $restactive == 1 }   
+   </div>
+{/if}
+{if $restactive == 1 }
    <br/>
    <div>
    <div class="restdescription">
@@ -43,9 +43,9 @@
 {wsdoc_rest($paramname, $paramdesc)}
 </pre>
    </div>
-   </div>   
-{/if}   
-</span>  
+   </div>
+{/if}
+</span>
   {/foreach}
 
 <br/>
@@ -56,7 +56,7 @@
 {if $fdesc->returns_desc->desc}
 {$fdesc->returns_desc->desc}
 <br/>
-{/if}   
+{/if}
 {if $fdesc->returns_desc}
    <div>
    <div class="detaildescription">
@@ -65,17 +65,17 @@
 </pre>
    </div>
    </div>
-{if $xmlrpcactive == 1 }   
+{if $xmlrpcactive == 1 }
    <br/>
    <div>
    <div class="xmlrpcdescription">
 <pre class='detaildescription'><b>{str tag="phpparam" section="auth.webservice"}</b>
-{htmlentities(wsdoc_xmlrpc_param_description_html($fdesc->returns_desc))}
+{htmlspecialchars(wsdoc_xmlrpc_param_description_html($fdesc->returns_desc))}
 </pre>
    </div>
-   </div>   
-{/if}   
-{if $restactive == 1 }   
+   </div>
+{/if}
+{if $restactive == 1 }
    <br/>
    <div>
    <div class="restdescription">
@@ -83,12 +83,12 @@
 {wsdoc_rest_response($paramname, $fdesc->returns_desc)}
 </pre>
    </div>
-   </div>   
-{/if}      
+   </div>
+{/if}
 {/if}
 </span>
 <br/>
-{if $restactive == 1 }   
+{if $restactive == 1 }
    <br/>
    <span class='response'>{str tag="errorcodes" section="webservice"}</span>
    <br/>
@@ -99,12 +99,12 @@
 {wsdoc_rest_exception($paramname, $fdesc->returns_desc)}
 </pre>
    </div>
-   </div>   
+   </div>
    </span>
-{/if}      
+{/if}
 <br/>
 <br/>
 {$form|safe}
-            
+
 
 {include file='footer.tpl'}

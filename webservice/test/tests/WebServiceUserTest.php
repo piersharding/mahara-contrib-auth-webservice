@@ -42,7 +42,7 @@ class WebServiceUserTest extends TestBase {
     *
     * @see TestBase::setUp()
     */
-    function setUp() {
+    public function setUp() {
         // default current user to admin
         parent::setUp();
 

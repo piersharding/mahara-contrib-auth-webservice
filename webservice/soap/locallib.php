@@ -42,6 +42,46 @@ require_once 'Zend/Soap/AutoDiscover.php';
 class Zend_Soap_Server_Local extends Zend_Soap_Server {
 
     /**
+    * Generate a server fault
+    *
+    * Note that the arguments are reverse to those of SoapFault.
+    *
+    * note: the difference with the Zend server is that we throw a SoapFault exception
+    * with the debuginfo integrated to the exception message when DEBUG >= NORMAL
+    *
+    * If an exception is passed as the first argument, its message and code
+    * will be used to create the fault object if it has been registered via
+    * {@Link registerFaultException()}.
+    *
+    * @link   http://www.w3.org/TR/soap12-part1/#faultcodes
+    * @param  string|Exception $fault
+    * @param  string $code SOAP Fault Codes
+    * @return SoapFault
+    */
+    public function fault($fault = null, $code = "Receiver") {
+
+        //run the zend code that clean/create a soapfault
+        $soapfault = parent::fault($fault, $code);
+
+        //intercept any exceptions and add the errorcode and debuginfo (optional)
+        $actor = null;
+        $details = null;
+        if ($fault instanceof Exception) {
+           //add the debuginfo to the exception message if debuginfo must be returned
+            if (ws_debugging() and isset($fault->debuginfo)) {
+                $details = $fault->debuginfo;
+            }
+        }
+
+        return new SoapFault($soapfault->faultcode,
+                $soapfault->getMessage() . ' | ERRORCODE: ' . (isset($fault->errorcode) ? $fault->errorcode : $code),
+                $actor, $details);
+    }
+
+    /**
+     * NOTE: this is basically a copy of the Zend handle()
+     *       but with $soap->fault returning faultactor + faultdetail
+     *
      * Handle a request
      *
      * Instantiates SoapServer object with options set in object, and
@@ -108,12 +148,15 @@ class Zend_Soap_Server_Local extends Zend_Soap_Server {
                                        'info' => 'exception: ' . get_class($e) . ' message: ' . $e->getMessage() . ' debuginfo: ' . (isset($e->debuginfo) ? $e->debuginfo : ''),
                                        'ip' => getremoteaddr());
                 insert_record('external_services_logs', $log, 'id', true);
+
                 // carry on with SOAP faulting
                 $fault = $this->fault($e);
                 if (isset($e->debuginfo)) {
                     $fault->faultstring .= ' ' . $e->debuginfo;
                 }
-                $soap->fault($fault->faultcode, $fault->faultstring);
+                $faultactor = isset($fault->faultactor) ? $fault->faultactor : null;
+                $detail = isset($fault->detail) ? $fault->detail : null;
+                $soap->fault($fault->faultcode, $fault->faultstring, $faultactor, $detail);
             }
         }
         $this->_response = ob_get_clean();
@@ -128,7 +171,7 @@ class Zend_Soap_Server_Local extends Zend_Soap_Server {
         }
 
         return $this->_response;
-    }
+     }
 }
 
 /**
@@ -173,12 +216,12 @@ class webservice_soap_server extends webservice_zend_server {
             //TODO: the zend error has been fixed in the last Zend SOAP version, check that is fixed and remove obsolete code
             $url = get_config('wwwroot') . 'webservice/soap/server.php/' . urlencode($username) . '/' . urlencode($password);
             // the Zend server is using this uri directly in xml - weird :-(
-            $this->zend_server->setUri(htmlentities($url));
+            $this->zend_server->setUri(htmlspecialchars($url));
         } else {
             $wstoken = param_variable('wstoken', '');
             $url = get_config('wwwroot') . 'webservice/soap/server.php?wstoken=' . urlencode($wstoken);
             // the Zend server is using this uri directly in xml - weird :-(
-            $this->zend_server->setUri(htmlentities($url));
+            $this->zend_server->setUri(htmlspecialchars($url));
         }
 
         if (!param_boolean('wsdl', 0)) {
@@ -192,10 +235,13 @@ class webservice_soap_server extends webservice_zend_server {
             $this->zend_server->registerFaultException('AccessDeniedException');
             $this->zend_server->registerFaultException('ParameterException');
             $this->zend_server->registerFaultException('WebserviceException');
-            $this->zend_server->registerFaultException('WebserviceParameterException');
+            $this->zend_server->registerFaultException('WebserviceParameterException');  //deprecated - kept for backward compatibility
             $this->zend_server->registerFaultException('WebserviceInvalidParameterException');
             $this->zend_server->registerFaultException('WebserviceInvalidResponseException');
             $this->zend_server->registerFaultException('WebserviceAccessException');
+            if (ws_debugging()) {
+                $this->zend_server->registerFaultException('SoapFault');
+            }
         }
     }
 

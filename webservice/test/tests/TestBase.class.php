@@ -299,7 +299,7 @@ class TestBase extends PHPUnit_Framework_TestCase {
      * common test framework for all tests - cycles through the number
      * of iterations, auth types, and protocols
      */
-    function testRun() {
+    public function testRun() {
         // do we have any tests
         if (!$this->testrest and !$this->testxmlrpc and !$this->testsoap) {
             print_r("Web service unit tests are not run as not setup.

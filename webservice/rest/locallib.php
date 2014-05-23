@@ -159,30 +159,45 @@ class webservice_rest_server extends webservice_base_server {
     protected function send_response() {
         global $USER;
 
-        $this->send_headers($this->format);
-        if ($this->format == 'json') {
-            echo json_encode($this->returns) . "\n";
+        //Check that the returned values are valid
+        try {
+            if ($this->function->returns_desc != null) {
+                $validatedvalues = external_api::clean_returnvalue($this->function->returns_desc, $this->returns);
+            } else {
+                $validatedvalues = null;
+            }
+        } catch (Exception $ex) {
+            $exception = $ex;
         }
-        else if ($this->format == 'atom') {
-            $smarty = smarty_core();
-            $smarty->assign_by_ref('results', $this->returns);
-            $smarty->assign('entries', $this->returns['entries']);
-            $smarty->assign('USER', $USER);
-            $smarty->assign('functionname', $this->functionname);
-            $smarty->assign('version', get_config('version'));
-            $smarty->assign('updated', self::format_rfc3339_date(time()));
-            $function = get_record('external_functions', 'name', $this->functionname);
-            $smarty->assign('id', (isset($results->id) ? $reults->id : get_config('wwwroot').'webservice/wsdoc.php?id=' . $function->id));
-            $smarty->assign('title', (isset($results->title) ? $results->title : $function->name . ' by ' . $USER->username . ' at ' . self::format_rfc3339_date(time())));
-//             echo $smarty->fetch('auth:webservice:atom.tpl');
-            $smarty->display('../../../auth/webservice/theme/raw/atom.tpl');
-        }
-        else {
-            $xml = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
-            $xml .= '<RESPONSE>' . "\n";
-            $xml .= self::xmlize_result($this->returns, $this->function->returns_desc);
-            $xml .= '</RESPONSE>' . "\n";
-            echo $xml;
+
+        if (!empty($exception)) {
+            $response =  $this->generate_error($exception);
+         } else {
+            $this->send_headers($this->format);
+            if ($this->format == 'json') {
+                echo json_encode($validatedvalues) . "\n";
+            }
+            else if ($this->format == 'atom') {
+                $smarty = smarty_core();
+                $smarty->assign_by_ref('results', $validatedvalues);
+                $smarty->assign('entries', $validatedvalues['entries']);
+                $smarty->assign('USER', $USER);
+                $smarty->assign('functionname', $this->functionname);
+                $smarty->assign('version', get_config('version'));
+                $smarty->assign('updated', self::format_rfc3339_date(time()));
+                $function = get_record('external_functions', 'name', $this->functionname);
+                $smarty->assign('id', (isset($results->id) ? $reults->id : get_config('wwwroot').'webservice/wsdoc.php?id=' . $function->id));
+                $smarty->assign('title', (isset($results->title) ? $results->title : $function->name . ' by ' . $USER->username . ' at ' . self::format_rfc3339_date(time())));
+    //             echo $smarty->fetch('auth:webservice:atom.tpl');
+                $smarty->display('../../../auth/webservice/theme/raw/atom.tpl');
+            }
+            else {
+                $xml = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
+                $xml .= '<RESPONSE>' . "\n";
+                $xml .= self::xmlize_result($validatedvalues, $this->function->returns_desc);
+                $xml .= '</RESPONSE>' . "\n";
+                echo $xml;
+            }
         }
     }
 
@@ -206,14 +221,16 @@ class webservice_rest_server extends webservice_base_server {
     protected function send_error($ex=null) {
         $this->send_headers($this->format);
         if ($this->format == 'json') {
-            echo json_encode(array('exception' => get_class($ex), 'message' => $ex->getMessage(), 'debuginfo' => (isset($ex->debuginfo) ? $ex->debuginfo : ''))) . "\n";
+            echo json_encode(array('exception' => get_class($ex), 'errorcode' => $ex->errorcode, 'message' => $ex->getMessage(), 'debuginfo' => (isset($ex->debuginfo) ? $ex->debuginfo : ''))) . "\n";
         }
         else {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
             $xml .= '<EXCEPTION class="' . get_class($ex) . '">' . "\n";
-            $xml .= '<MESSAGE>' . htmlentities($ex->getMessage(), ENT_COMPAT, 'UTF-8') . '</MESSAGE>' . "\n";
+            $xml .= '<ERRORCODE>' . htmlspecialchars($ex->errorcode, ENT_COMPAT, 'UTF-8')
+                    . '</ERRORCODE>' . "\n";
+            $xml .= '<MESSAGE>' . htmlspecialchars($ex->getMessage(), ENT_COMPAT, 'UTF-8') . '</MESSAGE>' . "\n";
             if (isset($ex->debuginfo)) {
-                $xml .= '<DEBUGINFO>' . htmlentities($ex->debuginfo, ENT_COMPAT, 'UTF-8') . '</DEBUGINFO>' . "\n";
+                $xml .= '<DEBUGINFO>' . htmlspecialchars($ex->debuginfo, ENT_COMPAT, 'UTF-8') . '</DEBUGINFO>' . "\n";
             }
             $xml .= '</EXCEPTION>' . "\n";
             echo $xml;
@@ -261,7 +278,7 @@ class webservice_rest_server extends webservice_base_server {
                 return '<VALUE null="null"/>' . "\n";
             }
             else {
-                return '<VALUE>' . htmlentities($returns, ENT_COMPAT, 'UTF-8') . '</VALUE>' . "\n";
+                return '<VALUE>' . htmlspecialchars($returns, ENT_COMPAT, 'UTF-8') . '</VALUE>' . "\n";
             }
 
         }
@@ -278,16 +295,6 @@ class webservice_rest_server extends webservice_base_server {
         } else if ($desc instanceof external_single_structure) {
             $single = '<SINGLE>' . "\n";
             foreach ($desc->keys as $key=>$subdesc) {
-                if (!array_key_exists($key, $returns)) {
-                    if ($subdesc->required == VALUE_REQUIRED) {
-                        $single .= '<ERROR>Missing required key "' . $key . '"</ERROR>';
-                        continue;
-                    }
-                    else {
-                        //optional field
-                        continue;
-                    }
-                }
                 $single .= '<KEY name="' . $key . '">' . self::xmlize_result($returns[$key], $subdesc) . '</KEY>' . "\n";
             }
             $single .= '</SINGLE>' . "\n";

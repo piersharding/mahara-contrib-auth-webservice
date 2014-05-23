@@ -79,6 +79,41 @@ class Zend_XmlRpc_Server_Local extends Zend_XmlRpc_Server {
             $this->_table->addMethod($definition, $key);
         }
     }
+
+    /**
+     * Raise an xmlrpc server fault
+     *
+     * Moodle note: the difference with the Zend server is that we throw a plain PHP Exception
+     * with the debuginfo integrated to the exception message when DEBUG >= NORMAL
+     *
+     * @param string|Exception $fault
+     * @param int $code
+     * @return Zend_XmlRpc_Server_Fault
+     */
+    public function fault($fault = null, $code = 404)
+    {
+        //intercept any exceptions with debug info and transform it in Moodle exception
+        if ($fault instanceof Exception) {
+            // code php exception must be a long
+            // we obtain a hash of the errorcode, and then to get an integer hash
+            $code = base_convert(md5($fault->errorcode), 16, 10);
+            // code php exception being a long, it has a maximum number of digits.
+            // we strip the $code to 8 digits, and hope for no error code collisions.
+            // Collisions should be pretty rare, and if needed the client can retrieve
+            // the accurate errorcode from the last | in the exception message.
+            $code = substr($code, 0, 8);
+             //add the debuginfo to the exception message if debuginfo must be returned
+            if (ws_debugging() and isset($fault->debuginfo)) {
+                $fault = new Exception($fault->getMessage() . ' | DEBUG INFO: ' . $fault->debuginfo
+                        . ' | ERRORCODE: ' . $fault->errorcode, $code);
+            } else {
+                $fault = new Exception($fault->getMessage()
+                        . ' | ERRORCODE: ' . $fault->errorcode, $code);
+            }
+        }
+
+        return parent::fault($fault, $code);
+    }
 }
 
 /**
@@ -396,6 +431,9 @@ class webservice_xmlrpc_server extends webservice_zend_server {
         Zend_XmlRpc_Server_Fault::attachFaultException('WebserviceParameterException');
         Zend_XmlRpc_Server_Fault::attachFaultException('WebserviceInvalidParameterException');
         Zend_XmlRpc_Server_Fault::attachFaultException('WebserviceInvalidResponseException');
+        if (ws_debugging()) {
+            Zend_XmlRpc_Server_Fault::attachFaultException('Exception');
+        }
     }
 
     /**

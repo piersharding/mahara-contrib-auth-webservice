@@ -87,6 +87,22 @@ define('GETREMOTEADDR_SKIP_HTTP_CLIENT_IP', '1');
 /** Get remote addr constant */
 define('GETREMOTEADDR_SKIP_HTTP_X_FORWARDED_FOR', '2');
 
+
+/**
+ * What debugging state is Web Services in
+ *
+ * @return boolean true on yes
+ */
+function ws_debugging() {
+    // must be set in config.php
+    if (get_config('enablewsdebugging')) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 /**
  * Check that a user is in the institution
  *
@@ -869,6 +885,39 @@ abstract class webservice_server implements webservice_server_interface {
 
         return $user;
     }
+
+    /**
+     * Intercept some maharawssettingXXX $_GET and $_POST parameter
+     * that are related to the web service call and are not the function parameters
+     */
+    protected function set_web_service_call_settings() {
+        global $CFG;
+
+        // Default web service settings.
+        // Must be the same XXX key name as the external_settings::set_XXX function.
+        // Must be the same XXX ws parameter name as 'maharawssettingXXX'.
+        $externalsettings = array(
+            'raw' => false,
+            'fileurl' => true,
+            'filter' =>  false);
+
+        // Load the external settings with the web service settings.
+        $settings = external_settings::get_instance();
+        foreach ($externalsettings as $name => $default) {
+
+            $wsparamname = 'maharawssetting' . $name;
+
+            // Retrieve and remove the setting parameter from the request.
+            // $value = optional_param($wsparamname, $default, PARAM_BOOL);
+            $value = param_variable($wsparamname, $default);
+            unset($_GET[$wsparamname]);
+            unset($_POST[$wsparamname]);
+
+            $functioname = 'set_' . $name;
+            $settings->$functioname($value);
+        }
+
+    }
 }
 
 /**
@@ -1187,7 +1236,7 @@ class ' . $classname . ' {
                     } else {
                         switch($keydesc->type) {
                             case PARAM_BOOL:
-                                $paramanddefault .= '=' . $keydesc->default; break;
+                                $paramanddefault .= '='. (int) $keydesc->default; break;
                             case PARAM_INT:
                                 $paramanddefault .= '=' . $keydesc->default; break;
                             case PARAM_FLOAT;
@@ -1342,29 +1391,38 @@ class ' . $classname . ' {
     }
 
     /**
-     * This method parses the $_REQUEST superglobal and looks for
+     * This method parses the $_POST and $_GET superglobals and looks for
      * the following information:
      *  1/ user authentication - username+password or token (wsusername, wspassword and wstoken parameters)
      *
      * @return void
      */
     protected function parse_request() {
+
+        // We are going to clean the POST/GET parameters from the parameters specific to the server.
+        parent::set_web_service_call_settings();
+
+        //Get GET and POST paramters
+        $methodvariables = array_merge($_GET,$_POST);
+
         if ($this->authmethod == WEBSERVICE_AUTHMETHOD_USERNAME) {
             //note: some clients have problems with entity encoding :-(
-            if (isset($_REQUEST['wsusername'])) {
-                $this->username = $_REQUEST['wsusername'];
+            if (isset($methodvariables['wsusername'])) {
+                $this->username = $methodvariables['wsusername'];
             }
-            if (isset($_REQUEST['wspassword'])) {
-                $this->password = $_REQUEST['wspassword'];
+            if (isset($methodvariables['wspassword'])) {
+                $this->password = $methodvariables['wspassword'];
             }
-            if (isset($_REQUEST['wsservice'])) {
-                $this->service = $_REQUEST['wsservice'];
+            if (isset($methodvariables['wsservice'])) {
+                $this->service = $methodvariables['wsservice'];
             }
         } else {
-            if (isset($_REQUEST['wstoken'])) {
-                $this->token = $_REQUEST['wstoken'];
+            if (isset($methodvariables['wstoken'])) {
+                $this->token = $methodvariables['wstoken'];
             }
         }
+
+        $this->parameters = $methodvariables;
     }
 
     /**

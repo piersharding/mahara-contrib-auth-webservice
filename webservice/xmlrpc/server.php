@@ -39,6 +39,15 @@ define('PUBLIC', 1);
 define('XMLRPC', 1);
 define('TITLE', '');
 
+// Make sure OPcache does not strip comments, we need them for Zend!
+if (ini_get('opcache.enable') and strtolower(ini_get('opcache.enable')) !== 'off') {
+    if (!ini_get('opcache.save_comments') or strtolower(ini_get('opcache.save_comments')) === 'off') {
+        ini_set('opcache.enable', 0);
+    } else {
+        ini_set('opcache.load_comments', 1);
+    }
+}
+
 // Catch anything that goes wrong in init.php
 ob_start();
     require(dirname(dirname(dirname(__FILE__))) . '/init.php');
@@ -47,6 +56,8 @@ ob_end_clean();
 require_once(get_config('docroot') . 'webservice/xmlrpc/locallib.php');
 
 if (!webservice_protocol_is_enabled('xmlrpc')) {
+    debugging('The server died because the web services or the XMLRPC protocol are not enable',
+        DEBUG_DEVELOPER);
     header("HTTP/1.0 404 Not Found");
     die;
 }

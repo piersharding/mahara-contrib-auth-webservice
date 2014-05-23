@@ -23,7 +23,7 @@ APIs.
 
 These can be run by changing to the exampleclients directory and executing:
 
-php example_user_api.php --username=blah3 --password=blahblah --url=http://mahara.local.net/maharadev/artefact/webservice/soap/server.php
+php example_user_api.php --username=blah3 --password=blahblah --url=https://mahara.local.net/maharadev/webservice/soap/server.php
 
 * you need to change the parameters accordingly, and you will be prompted for token,
 and connectivity information.

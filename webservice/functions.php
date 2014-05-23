@@ -570,7 +570,7 @@ class mahara_user_external extends external_api {
             if (empty($user->deleted)) {
                 // check the institution
                 if (!mahara_external_in_institution($user, $WEBSERVICE_INSTITUTION)) {
-                    throw new WebserviceInvalidParameterException(get_string('notauthforuserid', 'auth.webservice') . $user->id . ' institution: ' . $auth_instance->institution);
+                    throw new WebserviceInvalidParameterException(get_string('notauthforuserid', 'auth.webservice') . $user->id . ' institution: ' . $WEBSERVICE_INSTITUTION);
                 }
 
                 $auth_instance = get_record('auth_instance', 'id', $user->authinstance);
