@@ -404,6 +404,8 @@ class OAuthRequester extends OAuthRequestSigner
 		curl_setopt($ch, CURLOPT_TIMEOUT, 		 30);
 		// ensure that certificates are not checked for tests
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
 
 		foreach ($opts as $k => $v)
 		{

@@ -221,12 +221,12 @@ class webservice_rest_server extends webservice_base_server {
     protected function send_error($ex=null) {
         $this->send_headers($this->format);
         if ($this->format == 'json') {
-            echo json_encode(array('exception' => get_class($ex), 'errorcode' => $ex->errorcode, 'message' => $ex->getMessage(), 'debuginfo' => (isset($ex->debuginfo) ? $ex->debuginfo : ''))) . "\n";
+            echo json_encode(array('exception' => get_class($ex), 'errorcode' => (isset($ex->errorcode) ? $ex->errorcode : $ex->getCode()), 'message' => $ex->getMessage(), 'debuginfo' => (isset($ex->debuginfo) ? $ex->debuginfo : ''))) . "\n";
         }
         else {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>' . "\n";
             $xml .= '<EXCEPTION class="' . get_class($ex) . '">' . "\n";
-            $xml .= '<ERRORCODE>' . htmlspecialchars($ex->errorcode, ENT_COMPAT, 'UTF-8')
+            $xml .= '<ERRORCODE>' . htmlspecialchars((isset($ex->errorcode) ? $ex->errorcode : $ex->getCode()), ENT_COMPAT, 'UTF-8')
                     . '</ERRORCODE>' . "\n";
             $xml .= '<MESSAGE>' . htmlspecialchars($ex->getMessage(), ENT_COMPAT, 'UTF-8') . '</MESSAGE>' . "\n";
             if (isset($ex->debuginfo)) {
@@ -426,6 +426,8 @@ function webservice_download_file_content($url, $headers=null, $postdata=null, $
 
     if ($skipcertverify) {
         $options[CURLOPT_SSL_VERIFYPEER] = false;
+        $options[CURLOPT_SSL_VERIFYHOST] = false;
+
     }
 
     // use POST if requested
@@ -556,6 +558,7 @@ function webservice_http_request($config, $quiet=false) {
     }
     // ensure that certificates are not checked for tests
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $result = new StdClass();
     $result->data = curl_exec($ch);

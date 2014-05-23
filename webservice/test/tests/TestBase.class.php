@@ -383,6 +383,8 @@ class TestBase extends PHPUnit_Framework_TestCase {
                 foreach (array(array('wstoken' => $this->testtoken),
                                array('wsusername' => $this->testuser, 'wspassword' => $this->testuser),
                                array('wsse' => 1)) as $parms) {
+                    // stop failed to load external entity error
+                    libxml_disable_entity_loader(false);
                     if (isset($parms['wsse'])) {
                         //force SOAP synchronous mode
                         $soapclient = new webservice_soap_client(get_config('wwwroot') . 'webservice/soap/server.php', array('wsservice' => $this->servicename),

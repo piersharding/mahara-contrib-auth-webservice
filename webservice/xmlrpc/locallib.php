@@ -80,39 +80,41 @@ class Zend_XmlRpc_Server_Local extends Zend_XmlRpc_Server {
         }
     }
 
-    /**
-     * Raise an xmlrpc server fault
-     *
-     * Moodle note: the difference with the Zend server is that we throw a plain PHP Exception
-     * with the debuginfo integrated to the exception message when DEBUG >= NORMAL
-     *
-     * @param string|Exception $fault
-     * @param int $code
-     * @return Zend_XmlRpc_Server_Fault
-     */
-    public function fault($fault = null, $code = 404)
-    {
-        //intercept any exceptions with debug info and transform it in Moodle exception
+        /**
+    * Generate a server fault
+    *
+    * Note that the arguments are reverse to those of Zend_XmlRpc_Server_Fault.
+    *
+    * note: the difference with the Zend server is that we throw a Zend_XmlRpc_Server_Fault exception
+    * with the debuginfo integrated to the exception message when DEBUG >= NORMAL
+    *
+    * If an exception is passed as the first argument, its message and code
+    * will be used to create the fault object if it has been registered via
+    * {@Link registerFaultException()}.
+    *
+    * @param  string|Exception $fault
+    * @param  string $code XMLRPC Fault Codes
+    * @return Zend_XmlRpc_Server_Fault
+    */
+    public function fault($fault = null, $code = 404) {
+
+        //run the zend code that clean/create a xmlrpcfault
+        $xmlrpcfault = parent::fault($fault, $code);
+
+        //intercept any exceptions and add the errorcode and debuginfo (optional)
+        $actor = null;
+        $details = null;
         if ($fault instanceof Exception) {
-            // code php exception must be a long
-            // we obtain a hash of the errorcode, and then to get an integer hash
-            $code = base_convert(md5($fault->errorcode), 16, 10);
-            // code php exception being a long, it has a maximum number of digits.
-            // we strip the $code to 8 digits, and hope for no error code collisions.
-            // Collisions should be pretty rare, and if needed the client can retrieve
-            // the accurate errorcode from the last | in the exception message.
-            $code = substr($code, 0, 8);
-             //add the debuginfo to the exception message if debuginfo must be returned
+           //add the debuginfo to the exception message if debuginfo must be returned
             if (ws_debugging() and isset($fault->debuginfo)) {
-                $fault = new Exception($fault->getMessage() . ' | DEBUG INFO: ' . $fault->debuginfo
-                        . ' | ERRORCODE: ' . $fault->errorcode, $code);
-            } else {
-                $fault = new Exception($fault->getMessage()
-                        . ' | ERRORCODE: ' . $fault->errorcode, $code);
+                $details = $fault->debuginfo;
             }
         }
 
-        return parent::fault($fault, $code);
+        $fault = new Zend_XmlRpc_Server_Fault($xmlrpcfault);
+        $fault->setCode($xmlrpcfault->getCode());
+        $fault->setMessage($xmlrpcfault->getMessage() . ' | ERRORCODE: ' . $xmlrpcfault->getCode() . ' | DETAILS: ' . $details);
+        return $fault;
     }
 }
 

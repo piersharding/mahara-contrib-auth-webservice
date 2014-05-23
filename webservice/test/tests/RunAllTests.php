@@ -29,7 +29,7 @@
  * @copyright  Copyright (C) 2011 Catalyst IT Ltd (http://www.catalyst.net.nz)
  */
 
-require_once 'PHPUnit/Framework.php';
+# require_once 'PHPUnit/Framework.php';
 
 /**
  * phpunit test class that loads all the tests in the current directory
@@ -47,7 +47,7 @@ class RunAllTests {
             error_log('adding test: ' . $test);
             $test = basename($test);
             $parts = explode('.', $test);
-            echo "Setting up: $parts[0]\n";
+            error_log("Setting up: $parts[0]\n");
             require_once($test);
             $suite->addTestSuite($parts[0]);
         }
