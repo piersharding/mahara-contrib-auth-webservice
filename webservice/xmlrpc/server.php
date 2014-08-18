@@ -34,6 +34,9 @@
  * what the authentication type offered
  */
 
+// disable external entities
+libxml_disable_entity_loader(true);
+
 define('INTERNAL', 1);
 define('PUBLIC', 1);
 define('XMLRPC', 1);

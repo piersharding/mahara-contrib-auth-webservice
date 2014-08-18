@@ -311,10 +311,12 @@ class TestBase extends PHPUnit_Framework_TestCase {
 
             // test the REST interface
             if ($this->testrest) {
+                error_log("Testing REST");
                 $this->timerrest = time();
                 require_once(get_config('docroot') . "webservice/rest/lib.php");
                 // iterate the token and user auth types
                 foreach ($this->auths as $type) {
+                    error_log("Auth Type: " . $type);
                     switch ($type) {
                         case 'token':
                              $restclient = new webservice_rest_client(get_config('wwwroot') . 'webservice/rest/server.php',
@@ -349,6 +351,7 @@ class TestBase extends PHPUnit_Framework_TestCase {
 
             // test the XML-RPC interface
             if ($this->testxmlrpc) {
+                error_log("Testing XML RPC");
                 $this->timerxmlrpc = time();
                 require_once(get_config('docroot') . "webservice/xmlrpc/lib.php");
                 // iterate the token and user auth types
@@ -376,6 +379,7 @@ class TestBase extends PHPUnit_Framework_TestCase {
 
             // test the SOAP interface
             if ($this->testsoap) {
+                error_log("Testing SOAP");
                 $this->timersoap = time();
                 require_once(get_config('docroot') . "webservice/soap/lib.php");
 
