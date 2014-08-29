@@ -75,7 +75,9 @@ class webservice_soap_client extends Zend_Soap_Client {
         $params = array_values($params);
 
         //traditional Zend soap client call (integrating the token into the URL)
+        libxml_disable_entity_loader(false);
         $result = $this->__call($functionname, $params);
+        libxml_disable_entity_loader(true);
 
         return $result;
     }
