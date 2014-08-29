@@ -92,12 +92,12 @@ function build_webservice_user_search_results($search, $offset, $limit, $sortby,
 
     $cols = array(
         'icon'        => array('name'     => '',
-                               'template' => get_config('docroot') . 'auth/webservice/theme/raw/searchiconcolumn.tpl',
+                               'template'         =>  'auth:webservice:searchiconcolumn.tpl',
                                'class'    => 'center'),
         'firstname'   => array('name'     => get_string('firstname'), 'sort' => true),
         'lastname'    => array('name'     => get_string('lastname'), 'sort' => true),
         'username'    => array('name'     => get_string('username'), 'sort' => true,
-                               'template' => 'admin/users/searchusernamecolumn.tpl'),
+                               'template' => 'auth:webservice:searchusernamecolumn.tpl'),
         'email'       => array('name'     => get_string('email'), 'sort' => true),
     );
 
@@ -161,7 +161,7 @@ function build_webservice_log_search_results($search, $offset, $limit, $sortby, 
 
     $cols = array(
             'username'        => array('name'     => get_string('userauth', 'auth.webservice'),
-                               'template'         => get_config('docroot') . 'auth/webservice/theme/raw/username.tpl',
+                               'template'         =>  'auth:webservice:username.tpl',
                                'class'            => 'center',
                                'sort'             => true),
             'institution'   => array('name'     => get_string('institution'), 'sort' => true),
